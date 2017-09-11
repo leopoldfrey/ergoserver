@@ -1,18 +1,21 @@
 var express     = require("express");
+var http       = require("http");
 var multer      = require("multer");
 var fs          = require("fs");
-var WebSocket   = require("ws");
+//var WebSocket   = require("ws");
+var WebSocketServer   = require("ws").Server;
 var bodyParser  = require("body-parser");
 //var OSC         = require('osc-js') 
-var osc = require("osc");
+// var osc = require("osc");
 
 var app         =   express();
+var server = http.createServer(app);
 
 
 /* PARAMETERS */
 var webServerPort = 8080; // Web server (http) listens on this port
 var webSocketServerPort = 8000; // Web socket for changing protocols
-var oSCServerPort = 8082; // OSC Server listents on this port
+// var oSCServerPort = 8082; // OSC Server listents on this port
 
 // var oSCSendAddress = "127.0.0.1"; // OCS messages are sent to this address
 // var oSCSendPort = 1234;  // OCS messages are sent to this port
@@ -38,6 +41,10 @@ app.use('/img', express.static('public/img'))
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+server.listen(webServerPort,function() {
+    console.log("Web Server listening port " + webServerPort);
+});
 /*----------- Static Files -----------*/
 
 
@@ -48,10 +55,10 @@ app.use(bodyParser.json());
 /*----------- OSC Sender -----------*/
 
 // Create an osc.js UDP Port listening on port 8082
-var udpPort = new osc.UDPPort({
-    localAddress: "0.0.0.0",
-    localPort: oSCServerPort
-});
+// var udpPort = new osc.UDPPort({
+//     localAddress: "0.0.0.0",
+//     localPort: oSCServerPort
+// });
 
 // Open the socket.
 // udpPort.open();
@@ -193,8 +200,15 @@ app.post('/mail', function (req, res) {
 
 
 /*----------- WS Server -----------*/
-const wss = new WebSocket.Server({ port: webSocketServerPort },function(){
-  console.log("WS Server listenting on " + webSocketServerPort);
+
+// const wss = new WebSocket.Server({ port: webSocketServerPort },function(){
+//   console.log("WS Server listenting on " + webSocketServerPort);
+// });
+
+
+const wss = new WebSocketServer({
+    server: server,
+    autoAcceptConnections: false
 });
 
 var currentStage = 0;
@@ -298,6 +312,3 @@ osc.open({ port: 8082 }, function(){
 
 /*----------- OSC Server -----------*/
 
-app.listen(webServerPort,function() {
-    console.log("Web Server listening port " + webServerPort);
-});
