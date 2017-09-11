@@ -1,0 +1,76 @@
+<html>
+	<head>
+		<!--script src="js/osc.min.js"></script-->
+	</head>
+	<body style="width: 100%; height: 100%">
+		Listening to clients
+		<div id="text-to-send" contenteditable="true">FOCUS ON THE CONFERENCE2</div>
+		<div>
+			<!--button onclick="setClientsWS(0)">Pause</button-->
+			<button onclick="setClientsWS(0)">Pause</button>
+			<button onclick="setClientsWS(1)">Protocol 1</button>
+			<button onclick="setClientsWS(2)">Protocol 2</button>
+			<button onclick="setClientsWS(3)">Protocol 3</button>
+			<button onclick="setClientsWS(4)">Protocol 4</button>
+		</div>
+	</body>
+	<script>
+
+	var ws;
+    var wsServer = "ws://" + window.location.hostname + ":8081"
+
+   //  var osc = new OSC();
+  	// osc.open({ host:window.location.hostname, port: 8082}); // connect by default to ws://localhost:8080
+	
+	//var myPeerJSId = "ergocontroller";
+
+	document.addEventListener("DOMContentLoaded", function(event) {
+    	
+    	// Connect to websocket server
+        ws = new WebSocket(wsServer);
+
+    	ws.onopen = function (event) {
+          //exampleSocket.send("Here's some text that the server is urgently awaiting!"); 
+          console.log("Connected to ws server");
+        };
+
+        // Log errors
+		ws.onerror = function (error) {
+		  console.error("WebSocket Error " + error);
+		};
+
+		// Log messages from the server
+		ws.onmessage = function (e) {
+			console.log("Received message: " + e.data);
+		};
+
+    });
+
+
+	function setClientsWS(stage) {
+
+		if (!ws) {
+			console.log("No ws connection!");
+			return;
+		}
+
+		messageToSend = "";
+
+		if (stage == 0) {
+			messageToSend = document.getElementById("text-to-send").innerHTML;
+		}
+
+		ws.send(JSON.stringify({
+			type:"broadcast", 
+			stage: stage,
+			standbyMsg: messageToSend
+		}));
+
+	}
+
+	// function setClientsOSC(stage) {
+
+	// }
+	
+	</script>
+</html>
