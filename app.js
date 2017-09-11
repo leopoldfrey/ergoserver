@@ -10,12 +10,12 @@ var app         =   express();
 
 
 /* PARAMETERS */
-var webServerPort = 8080; // Web server (http) listens on this port
-var webSocketServerPort = 8081; // Web socket for changing protocols
+var webServerPort = 80; // Web server (http) listens on this port
+var webSocketServerPort = 8080; // Web socket for changing protocols
 var oSCServerPort = 8082; // OSC Server listents on this port
 
-var oSCSendAddress = "127.0.0.1"; // OCS messages are sent to this address
-var oSCSendPort = 1234;  // OCS messages are sent to this port
+// var oSCSendAddress = "127.0.0.1"; // OCS messages are sent to this address
+// var oSCSendPort = 1234;  // OCS messages are sent to this port
 
 app.get('/',function(req,res){
       res.sendFile(__dirname + "/public/index.html");
@@ -54,19 +54,19 @@ var udpPort = new osc.UDPPort({
 });
 
 // Open the socket.
-udpPort.open();
+// udpPort.open();
 
 // When the port is read, send an OSC message to test
-udpPort.on("ready", function () {
-  console.log("OSC server runing on port " + oSCServerPort);
+// udpPort.on("ready", function () {
+//   console.log("OSC server runing on port " + oSCServerPort);
 
-  // Send a test message
-  udpPort.send({
-      address: "/test",
-      args: ["msg", "hello"]
-  }, oSCSendAddress, oSCSendPort);
+//   // Send a test message
+//   udpPort.send({
+//       address: "/test",
+//       args: ["msg", "hello"]
+//   }, oSCSendAddress, oSCSendPort);
 
-});
+// });
 
 /*----------- OSC Sender -----------*/
 
@@ -121,10 +121,10 @@ app.post('/image', upload.single("ergoimage"), function (req, res) {
               };
 
               // Notify OSC server about image
-              udpPort.send({
-                  address: "/new_img",
-                  args: ["filename", file]
-              }, oSCSendAddress, oSCSendPort);
+              // udpPort.send({
+              //     address: "/new_img",
+              //     args: ["filename", file]
+              // }, oSCSendAddress, oSCSendPort);
 
 
           }
