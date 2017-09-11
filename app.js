@@ -1,5 +1,6 @@
 var express     = require("express");
-var http       = require("http");
+var http        = require("http");
+var serveIndex  = require("serve-index");
 var multer      = require("multer");
 var fs          = require("fs");
 //var WebSocket   = require("ws");
@@ -41,6 +42,7 @@ app.use('/js', express.static('public/js'));
 app.use('/img', express.static('public/img'));
 
 app.use('/uploads', express.static('uploads'));
+app.use('/uploads', serveIndex(__dirname + '/uploads'));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());

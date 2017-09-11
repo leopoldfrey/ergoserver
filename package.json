@@ -9,6 +9,7 @@
     "multer": "1.1.0",
     "fs": "latest",
     "ws": "latest",
-    "body-parser": "latest"
+    "body-parser": "latest",
+    "serve-index": "latest"
   }
 }
