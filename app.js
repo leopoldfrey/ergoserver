@@ -38,7 +38,9 @@ app.get('/ergocontroller.html',function(req,res){
 app.use('/vendor', express.static('public/vendor'));
 app.use('/css', express.static('public/css'));
 app.use('/js', express.static('public/js'));
-app.use('/img', express.static('public/img'))
+app.use('/img', express.static('public/img'));
+
+app.use('/uploads', express.static('uploads'));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
