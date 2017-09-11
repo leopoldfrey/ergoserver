@@ -3,7 +3,8 @@ var http       = require("http");
 var multer      = require("multer");
 var fs          = require("fs");
 //var WebSocket   = require("ws");
-var WebSocketServer   = require("ws").Server;
+var WebSocket   = require("ws");
+var WebSocketServer   = WebSocket.Server;
 var bodyParser  = require("body-parser");
 //var OSC         = require('osc-js') 
 // var osc = require("osc");
@@ -208,7 +209,7 @@ app.post('/mail', function (req, res) {
 
 const wss = new WebSocketServer({
     server: server,
-    autoAcceptConnections: false
+    autoAcceptConnections: true
 });
 
 var currentStage = 0;
