@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- guide: https://davidwalsh.name/html5-camera-video-iphone -->
+<!-- https://github.com/blueimp/JavaScript-Load-Image -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>ERGONOMICS</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Theme CSS -->
+    <!--link href="css/grayscale.min.css" rel="stylesheet"-->
+    <link href="css/grayscale.css" rel="stylesheet">
+
+    <!-- Img processing from phone -->
+    <script src="js/load-image.all.min.js"></script>
+
+    <!-- PeerJS -->
+    <script src="/js/peer.min.js"></script>
+
+    <script>
+
+    document.addEventListener("DOMContentLoaded", function(event) {
+
+        // Buttons
+        document.getElementById("btn-click-photo").onclick = clickPhotoButton;
+        document.getElementById("btn-click-share").onclick = clickPhotoButton;
+
+        if (window.File && window.FileReader && window.FormData) {
+
+            document.getElementById("btn-click-photo-os").onchange = function (e) {
+                var loadingImage = loadImage(
+                    e.target.files[0],
+                    function (img) {
+                        img.classList.add("img-result");
+                        document.getElementById("imgResultDiv").appendChild(img);
+
+                        // Upload image to server
+                        uploadImage();
+                    },
+                    {
+                        maxWidth: 360
+                        //minHeight: 1000,
+                        //canvas: true,
+                        //orientation: true
+                    }
+                );
+                if (!loadingImage) {
+                    console.log("Error, image not loaded");
+                }
+
+            };
+
+        } else {
+            alert("File upload is not supported!");
+        }
+        
+        // Connect to PeerJS server
+        var peer = new Peer({
+            host: window.location.hostname,
+            port: "3000",
+            path: "/peerjs",
+            debug: 3
+        });
+
+        peer.on('open', function() {
+          console.log("Connection to perjs server is OPEN");
+        });
+
+        peer.on('error', function(err) {
+          console.log("PeerJS Error : " + err.message);
+        });
+
+        peer.on('connection', function(con){
+            con.on('data', function(data){
+                console.log('Incoming data', data);
+                setStage(data);
+            });
+        });
+
+    });
+
+    function setStage(stage) {
+        switch(stage) {
+            case 0:
+                document.getElementById("section-standBy").style.display = "";
+                document.getElementById("section-protocol").style.display = "none";
+            break;
+
+            case 1:
+                document.getElementById("section-standBy").style.display = "none";
+                document.getElementById("section-protocol").style.display = "";
+            break;
+
+            case 2:
+            break;
+
+            case 3:
+            break;
+
+            case 4:
+            break;
+        }
+    }
+
+    function clickPhotoButton(e) {
+        // Click the actual hidden button
+        document.getElementById("btn-click-photo-os").click();
+    }
+
+    function uploadImage() {
+
+        var blobFile = document.getElementById("btn-click-photo-os").files[0];
+        var formData = new FormData();
+        formData.append("ergoimage", blobFile);
+
+
+        $.ajax({
+            url: "/image",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                // .. do something
+                var reply = JSON.parse(response);
+                console.log("Success! Server: " + reply.message);
+            },
+            error: function(jqXHR, textStatus, errorMessage) {
+                console.log(errorMessage); // Optional
+            }
+        });
+
+
+    }
+
+    </script>
+
+    <style>
+    .img-result {
+        width:80%;
+        height:auto;
+    }
+
+    .btn-click-photo {
+        background-color: white;
+        color: black;
+        height: 78px;
+        padding-top: 15px;
+        border-radius: 17px;
+        position: fixed;
+        bottom: 40px;
+        left: 40px;
+    }
+
+    .btn-click-share {
+        background-color: white;
+        color: black;
+        height: 78px;
+        padding-top: 26px;
+        border-radius: 17px;
+        position: fixed;
+        bottom: 40px;
+        right: 40px;
+    }
+    </style>
+
+</head>
+
+<body id="page-top" data-spy="scroll" data-target=".navbar-fixed-top">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-custom navbar-fixed-top" role="navigation" style="display:none">
+    
+    </nav>
+
+    <!-- Section -->
+    <section id="section-protocol" style="padding-top:30px" class="container content-section text-center" style="padding:0;">
+        
+        <h1>Smart Body training protocol<br>#1</h1>
+        
+        <div class="row">
+
+            <div id="imgResultDiv" class="col-lg-12" style="margin-bottom: 60px">
+                
+            </div>
+
+            <div class="col-lg-12">
+                <input id="btn-click-photo-os" name="ergoimage" type="file" accept="image/*" style="display:none">
+                <div id="btn-click-photo"  class="btn btn-lg btn-click-photo">TAKE A<br>PHOTO</div>
+                <div id="btn-click-share"  class="btn btn-lg btn-click-share">SHARE</div>
+
+            </div>            
+            
+        </div>
+    </section>
+
+    <section id="section-standBy" style="display:none" class="container content-section text-center" style="padding:0;">
+        
+        <h1>STAND BY</h1>
+        
+    </section>
+
+    <!-- jQuery -->
+    <script src="vendor/jquery/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Plugin JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+
+    <!-- Theme JavaScript -->
+    <!--script src="js/grayscale.min.js"></script-->
+    <script src="js/grayscale.js"></script>
+
+</body>
+
+</html>

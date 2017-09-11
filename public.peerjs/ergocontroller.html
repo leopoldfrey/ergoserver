@@ -1,0 +1,123 @@
+<html>
+	<head>
+		<script src="/js/peer.min.js"></script>
+	</head>
+	<body style="width: 100%; height: 100%">
+		Listening to clients
+		<div>
+			<button onclick="setClients(0)">Pause</button>
+			<button onclick="setClients(1)">Protocol 1</button>
+			<button onclick="setClients(2)">Protocol 2</button>
+			<button onclick="setClients(3)">Protocol 3</button>
+			<button onclick="setClients(4)">Protocol 4</button>
+		</div>
+	</body>
+	<script>
+
+	var peer;
+	var myPeerJSId = "ergocontroller";
+
+	/*
+		var hostname = "aa";
+        var serverHostname = "localhost";
+        var serverPort = "3000";
+
+        // document.getElementById("main-div").innerHTML = "Step 1";
+
+        var peer = new Peer(hostname, {host: serverHostname, port: serverPort, path: '/', debug: 3});
+	*/
+	function setClients(stage) {
+
+		if (!peer) {
+			console.log("No Peer connection!");
+			return;
+		}
+
+		// Get all Peers
+		peer.listAllPeers(function(peers) {
+
+			// Remove my own id from the list
+			var index = peers.indexOf(myPeerJSId);
+			peers.splice(index, 1);
+
+			for (var i = 0; i < peers.length; i++) {
+
+				// Do we have a connection open to this peer?
+				// TODO
+				var messageSent = false;
+
+				// Connections is an object, not an array
+				for( var connId in peer.connections ) {
+				    if (peers[i] == connId) {
+				    	peer.connections[connId][0].send(stage);
+				       	messageSent = true;
+						break;
+				    }
+				}
+
+				/*
+				var connetions = connectionsObj2arr(peer.connections);
+
+				for (var j = 0; j < peer.connections.length; j++) {
+					if (peers[i] == connections[j].id) {
+						connections[j].send(stage);
+						messageSent = true;
+						break;
+					}
+				}
+*/
+				if (!messageSent) {
+					var conn = peer.connect(peers[i]);
+					conn.on('open', function(){
+					  conn.send(stage);
+					});	
+
+				}
+				
+			}
+		});
+
+		
+
+	}
+
+	function connectionsObj2arr(obj) {
+		var arr =[];
+		for( var i in obj ) {
+		    if (obj.hasOwnProperty(i)) {
+
+		       arr.push(obj[i]);
+		    }
+		}
+	}
+
+	document.addEventListener("DOMContentLoaded", function(event) {
+    	peer = new Peer(myPeerJSId, {
+			host: window.location.hostname,
+			port: "3000",
+			path: "/peerjs"//,
+			//debug: 3
+		});
+
+
+		peer.on('open', function() {
+	      console.log("Connection to perjs server is OPEN");
+	    });
+
+	    peer.on('error', function(err) {
+    	  console.log("Error : " + err.message);
+	    });
+
+
+		peer.on('connection', function(conn) {
+		  console.log("Someone connected..");
+		  conn.on('data', function(data){
+		  	console.log("Data received: " + data);
+		  });
+		});
+
+
+    });
+
+	</script>
+</html>
