@@ -114,9 +114,9 @@ app.post('/image', upload.single("ergoimage"), function (req, res) {
    console.log("Receiving image..");
    var date = new Date();
 
-   var stringToAppend = date.getHours() + "h" + date.getMinutes() + "m" +  date.getSeconds() + "s" + date.getMilliseconds();
+   var timeToAppend = date.getHours() + "h" + date.getMinutes() + "m" +  date.getSeconds() + "s" + date.getMilliseconds();
 
-   var file = __dirname + "/uploads/" + stringToAppend + "_" +  req.file.originalname;
+   var file = __dirname + "/uploads/" + timeToAppend + "_" + currentStage +  "_" +  req.file.originalname;
    fs.readFile( req.file.path, function (err, data) {
         fs.writeFile(file, data, function (err) {
          if( err ){
@@ -131,6 +131,19 @@ app.post('/image', upload.single("ergoimage"), function (req, res) {
                    message: 'File uploaded successfully',
                    filename: req.file.originalname
               };
+
+              wss.clients.forEach(function each(client) {
+                if (client !== wss && client.readyState === WebSocket.OPEN) {
+                  console.log("Sending new img upload");
+                  client.send(
+                    JSON.stringify(
+                    {
+                      type: "newimage",
+                      stage: currentStage,
+                      standbyMsg: file
+                    }));
+                }
+              });
 
               // Notify OSC server about image
               // udpPort.send({
