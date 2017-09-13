@@ -53,6 +53,13 @@ server.listen(webServerPort,function() {
 /*----------- Static Files -----------*/
 
 
+// Tools
+String.prototype.replaceAll = function(search, replacement) {
+  var target = this;
+  return target.replace(new RegExp(search, 'g'), replacement);
+};
+
+
 /*----------- OSC Sender -----------*/
 // var oscPort = new osc.WebSocketPort({
 //     url: "ws://localhost:8081" // URL to your Web Socket server. 
@@ -117,6 +124,7 @@ app.post('/image', upload.single("ergoimage"), function (req, res) {
    var timeToAppend = date.getHours() + "h" + date.getMinutes() + "m" +  date.getSeconds() + "s" + date.getMilliseconds();
 
    var file = __dirname + "/uploads/" + timeToAppend + "_" + currentStage +  "_" +  req.file.originalname;
+   file = file.replaceAll(" ", "_");
    fs.readFile( req.file.path, function (err, data) {
         fs.writeFile(file, data, function (err) {
          if( err ){
