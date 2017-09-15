@@ -30,10 +30,8 @@
 
 document.addEventListener("visibilitychange", function() {
   console.log( document.visibilityState );
-});
-
-	document.addEventListener("onfocus", function( event ) {
-		switch(ws.readyState) {
+  if(document.visibilityState == "visible" ) {
+  switch(ws.readyState) {
 			case ws.CONNECTING:
 				console.log("WebSocket Connecting...");
 				break;
@@ -48,7 +46,8 @@ document.addEventListener("visibilitychange", function() {
 				ws = new WebSocket(wsServer);
 				break;
 		}
-	}, true);
+  }
+});
 
     document.addEventListener("DOMContentLoaded", function(event) {
 
