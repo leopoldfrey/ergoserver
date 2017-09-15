@@ -49,6 +49,24 @@ document.addEventListener("visibilitychange", function() {
   }
 });
 
+document.addEventListener("onfocus", function() {
+  switch(ws.readyState) {
+			case ws.CONNECTING:
+				console.log("WebSocket Connecting...");
+				break;
+			case ws.OPEN:
+				console.log("WebSocket Open :)");
+				break;
+			case ws.CLOSING:
+				console.log("WebSocket Closing...");
+				break;
+			case ws.CLOSED:
+				console.log("WebSocket Closed :(");
+				ws = new WebSocket(wsServer);
+				break;
+		}
+});
+
     document.addEventListener("DOMContentLoaded", function(event) {
 
         // Buttons
@@ -253,7 +271,7 @@ document.addEventListener("visibilitychange", function() {
 
     <section id="section-standBy" style="" class="container content-section text-center" style="padding:0;">
         
-        <h1 id="msg-standby">FOCUS ON THE CONFERENCE</h1>
+        <h1 id="msg-standby">WELCOME TO THE CONFERENCE</h1>
         
     </section>
 
