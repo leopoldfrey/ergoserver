@@ -28,7 +28,11 @@
     var wsServer = "ws://" + window.location.hostname;// + ":8080";
     var oldStage = -1;
 
-	document.addEventListener("focus", function( event ) {
+document.addEventListener("visibilitychange", function() {
+  console.log( document.visibilityState );
+});
+
+	document.addEventListener("onfocus", function( event ) {
 		switch(ws.readyState) {
 			case ws.CONNECTING:
 				console.log("WebSocket Connecting...");
