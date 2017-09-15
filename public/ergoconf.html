@@ -28,45 +28,6 @@
     var wsServer = "ws://" + window.location.hostname;// + ":8080";
     var oldStage = -1;
 
-document.addEventListener("visibilitychange", function() {
-  console.log( document.visibilityState );
-  if(document.visibilityState == "visible" ) {
-  switch(ws.readyState) {
-			case ws.CONNECTING:
-				console.log("WebSocket Connecting...");
-				break;
-			case ws.OPEN:
-				console.log("WebSocket Open :)");
-				break;
-			case ws.CLOSING:
-				console.log("WebSocket Closing...");
-				break;
-			case ws.CLOSED:
-				console.log("WebSocket Closed :(");
-				ws = new WebSocket(wsServer);
-				break;
-		}
-  }
-});
-
-document.addEventListener("onfocus", function() {
-  switch(ws.readyState) {
-			case ws.CONNECTING:
-				console.log("WebSocket Connecting...");
-				break;
-			case ws.OPEN:
-				console.log("WebSocket Open :)");
-				break;
-			case ws.CLOSING:
-				console.log("WebSocket Closing...");
-				break;
-			case ws.CLOSED:
-				console.log("WebSocket Closed :(");
-				ws = new WebSocket(wsServer);
-				break;
-		}
-});
-
     document.addEventListener("DOMContentLoaded", function(event) {
 
         // Buttons
@@ -101,7 +62,27 @@ document.addEventListener("onfocus", function() {
         } else {
             alert("File upload is not supported!");
         }
-        
+
+        connectToWS();
+
+    });
+
+    document.addEventListener("visibilitychange", function() {
+        console.log("Visibility changed to: " + document.visibilityState);
+        if(document.visibilityState == "visible" ) {
+            checkWSStateAndReconnectIfNecessary(ws.readyState);
+        }
+        // if(document.visibilityState == "hidden" ) {
+        //     ws.close();
+        // }
+    });
+
+    document.addEventListener("onfocus", function() {
+        console.log("Gained focus");
+        checkWSStateAndReconnectIfNecessary(ws.readyState);
+    });
+
+    function connectToWS() {
         // Connect to websocket server
         ws = new WebSocket(wsServer);
 
@@ -122,31 +103,46 @@ document.addEventListener("onfocus", function() {
         };
 
         ws.onopen = function (event) {
-            
             console.log("Connected to ws server");
 
-            //setTimeout(function(){
-                ws.send(
-                    JSON.stringify(
-                    {
-                        type:"getInit",
-                        stage:""
-                    })
-                , function (err) {
-                    if (err) {
-                        console.log("Error sending init");
-                    } else {
-                        console.log("Success sending init");
-                    }
-                    
-                });
-
-            //},100);
+            ws.send(
+                JSON.stringify(
+                {
+                    type:"getInit",
+                    stage:""
+                })
+            , function (err) {
+                if (err) {
+                    console.log("Error sending init");
+                } else {
+                    console.log("Success sending init");
+                }
+                
+            });
             
         };
 
-        
-    });
+    }
+
+
+    function checkWSStateAndReconnectIfNecessary(wsReadyState) {
+        switch(wsReadyState) {
+            case ws.CONNECTING:
+                console.log("WebSocket Connecting...");
+                break;
+            case ws.OPEN:
+                console.log("WebSocket Open :)");
+                break;
+            case ws.CLOSING:
+                console.log("WebSocket Closing...");
+                break;
+            case ws.CLOSED:
+                console.log("WebSocket Closed :(");
+                connectToWS();
+                break;
+        }
+
+    }
 
     function setStage(stage, standbyMsg) {
 
