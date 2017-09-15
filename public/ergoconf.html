@@ -28,6 +28,24 @@
     var wsServer = "ws://" + window.location.hostname;// + ":8080";
     var oldStage = -1;
 
+	document.addEventListener("focus", function( event ) {
+		switch(ws.readyState) {
+			case ws.CONNECTING:
+				console.log("WebSocket Connecting...");
+				break;
+			case ws.OPEN:
+				console.log("WebSocket Open :)");
+				break;
+			case ws.CLOSING:
+				console.log("WebSocket Closing...");
+				break;
+			case ws.CLOSED:
+				console.log("WebSocket Closed :(");
+				ws = new WebSocket(wsServer);
+				break;
+		}
+	}, true);
+
     document.addEventListener("DOMContentLoaded", function(event) {
 
         // Buttons
