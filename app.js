@@ -247,7 +247,7 @@ wss.on('connection', function connection(ws) {
     var msg = JSON.parse(message);
     
     switch(msg.type) {
-      case "broadcast":
+      case "broadcastChangeState":
         currentStage = msg.stage;
         currentStandbyMessage = msg.standbyMsg;
 
@@ -257,7 +257,7 @@ wss.on('connection', function connection(ws) {
             client.send(
               JSON.stringify(
               {
-                type: "",
+                type: "changeState",
                 stage: currentStage,
                 standbyMsg: currentStandbyMessage
               }));

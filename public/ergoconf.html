@@ -100,11 +100,11 @@
         ws.onmessage = function (e) {
             console.log("Recived message: " + e.data);
             var reply = JSON.parse(e.data);
-            //if (reply.type == "initState") {
+            if (reply.type == "changeState") {
                 setStage(reply.stage, reply.standbyMsg);
-            //} else {
-                //console.log("Unknown state");
-            //}
+            } else {
+                console.log("Unknown state received from server: " + reply.stage);
+            }
         };
 
         // Log errors
