@@ -247,7 +247,7 @@ wss.on('connection', function connection(ws) {
     var msg = JSON.parse(message);
     
     switch(msg.type) {
-      case "broadcastChangeState":
+      case "broadcast":
         currentStage = msg.stage;
         currentStandbyMessage = msg.standbyMsg;
 
