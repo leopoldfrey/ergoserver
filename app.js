@@ -16,7 +16,7 @@ var server = http.createServer(app);
 
 /* PARAMETERS */
 var webServerPort = 8080; // Web server (http) listens on this port
-var webSocketServerPort = 8000; // Web socket for changing protocols
+//var webSocketServerPort = 8000; // Web socket for changing protocols
 // var oSCServerPort = 8082; // OSC Server listents on this port
 
 // var oSCSendAddress = "127.0.0.1"; // OCS messages are sent to this address
