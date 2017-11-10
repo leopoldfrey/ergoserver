@@ -25,9 +25,10 @@
     <script>
 
     var ws;
-    var wsServer = "ws://" + window.location.hostname + "/ws";
-    //var wsServer = "ws://" + window.location.hostname + ":8080";
-    
+    //var wsServer = "ws://" + window.location.hostname + "/ws";
+    //var wsServer = "ws://" + window.location.hostname + ":" + location.port + "/ws";
+    var wsServer = "ws://" + window.location.hostname + ":" + location.port + "/ws";
+
     var oldStage = -1;
 
     document.addEventListener("DOMContentLoaded", function(event) {
