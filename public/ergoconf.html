@@ -26,25 +26,39 @@
 
     var ws;
     //var wsServer = "ws://" + window.location.hostname + "/ws";
-    //var wsServer = "ws://" + window.location.hostname + ":" + location.port + "/ws";
     var wsServer = "ws://" + window.location.hostname + ":" + location.port + "/ws";
 
     var oldStage = -1;
 
+    /* Onload */
     document.addEventListener("DOMContentLoaded", function(event) {
 
         // Buttons
         document.getElementById("btn-click-photo").onclick = clickPhotoButton;
         document.getElementById("btn-click-share").onclick = clickPhotoButton;
 
+        /* -- Image Processing -- */
+        
         if (window.File && window.FileReader && window.FormData) {
 
-            document.getElementById("btn-click-photo-os").onchange = function (e) {
+            document.getElementById("btn-click-photo-os").onchange = function (event) {
+
+                // New code
+                resizeAndUpload();
+
+                /*
+                // Original code
                 var loadingImage = loadImage(
-                    e.target.files[0],
+                    event.target.files[0],
                     function (img) {
                         img.classList.add("img-result");
-                        document.getElementById("imgResultDiv").appendChild(img);
+                        img.id = "img-id";
+                        // Append as last
+                        //document.getElementById("imgResultDiv").appendChild(img);
+
+                        // Append as first
+                        var resultDiv = document.getElementById("imgResultDiv");
+                        resultDiv.insertBefore(img, resultDiv.firstChild);
 
                         // Upload image to server
                         uploadImage();
@@ -59,17 +73,160 @@
                 if (!loadingImage) {
                     console.log("Error, image not loaded");
                 }
+                */
 
             };
 
         } else {
             alert("File upload is not supported!");
         }
-
+        
         connectToWS();
 
     });
 
+    /* Utility function to convert a canvas to a BLOB */
+    var dataURLToBlob = function(dataURL) {
+      console.log("DataURLToBlob")
+        var BASE64_MARKER = ';base64,';
+        if (dataURL.indexOf(BASE64_MARKER) == -1) {
+            var parts = dataURL.split(',');
+            var contentType = parts[0].split(':')[1];
+            var raw = parts[1];
+
+            return new Blob([raw], {type: contentType});
+        }
+
+        var parts = dataURL.split(BASE64_MARKER);
+        var contentType = parts[0].split(':')[1];
+        var raw = window.atob(parts[1]);
+        var rawLength = raw.length;
+
+        var uInt8Array = new Uint8Array(rawLength);
+
+        for (var i = 0; i < rawLength; ++i) {
+            uInt8Array[i] = raw.charCodeAt(i);
+        }
+
+        return new Blob([uInt8Array], {type: contentType});
+    }
+    /* End Utility function to convert a canvas to a BLOB      */
+
+    // https://www.codeforest.net/html5-image-upload-resize-and-crop
+    function resizeAndUpload() {
+        var loadingImage = loadImage(
+            event.target.files[0],
+            function (img) {
+                img.classList.add("img-result");
+                //img.id = "img-id";
+
+                // Append as first
+                var resultDiv = document.getElementById("imgResultDiv");
+                resultDiv.insertBefore(img, resultDiv.firstChild);
+
+                // https://www.codeforest.net/html5-image-upload-resize-and-crop
+                // Resize
+                //var MAX_WIDTH = 1000;
+                //var MAX_HEIGHT = 500;
+                //var tempW = tempImg.width;
+                //var tempH = tempImg.height;
+                //if (tempW > tempH) {
+                //    if (tempW > MAX_WIDTH) {
+                //       tempH *= MAX_WIDTH / tempW;
+                //       tempW = MAX_WIDTH;
+                //    }
+                //} else {
+                //    if (tempH > MAX_HEIGHT) {
+                //       tempW *= MAX_HEIGHT / tempH;
+                //       tempH = MAX_HEIGHT;
+                //    }
+                //}
+
+                //var canvas = document.createElement('canvas');
+                //canvas.width = tempW;
+                //canvas.height = tempH;
+                //var ctx = canvas.getContext("2d");
+                //ctx.drawImage(this, 0, 0, tempW, tempH);
+                //var dataURL = canvas.toDataURL("image/jpeg");
+                var dataURL = img.toDataURL("image/jpeg");
+
+                var blob = dataURLToBlob(dataURL);
+
+                uploadImageAsBlob(blob);
+
+                // In order to trigger again onchange
+                document.getElementById('btn-click-photo-os').value = null;
+            },
+            {
+                maxWidth: 1000,
+                //minHeight: 1000,
+                canvas: true,
+                //orientation: true
+            }
+        );
+        if (!loadingImage) {
+            console.log("Error, image not loaded");
+        }
+
+    }
+
+    /*-- --*/
+
+    function clickPhotoButton(e) {
+        // Click the actual hidden button
+        document.getElementById("btn-click-photo-os").click();
+    }
+
+    function uploadImage() {
+
+        var blobFile = document.getElementById("btn-click-photo-os").files[0];
+        var formData = new FormData();
+        formData.append("ergoimage", blobFile);
+
+        $.ajax({
+            url: "/image",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                // .. do something
+                var reply = JSON.parse(response);
+                console.log("Success! Server: " + reply.message);
+            },
+            error: function(jqXHR, textStatus, errorMessage) {
+                console.log(errorMessage); // Optional
+            }
+        });
+
+    }
+
+    function uploadImageAsBlob(blob) {
+
+        //var blobFile = document.getElementById("btn-click-photo-os").files[0];
+        var formData = new FormData();
+        formData.append("ergoimage", blob);
+
+        $.ajax({
+            url: "/image",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                // .. do something
+                var reply = JSON.parse(response);
+                console.log("Success! Server: " + reply.message);
+            },
+            error: function(jqXHR, textStatus, errorMessage) {
+                console.log(errorMessage); // Optional
+            }
+        });
+
+    }
+
+
+    /* -- Web Sockets -- */
     document.addEventListener("visibilitychange", function() {
         console.log("Visibility changed to: " + document.visibilityState);
         if(document.visibilityState == "visible" ) {
@@ -185,36 +342,6 @@
         }
 
         oldStage = stage;
-    }
-
-    function clickPhotoButton(e) {
-        // Click the actual hidden button
-        document.getElementById("btn-click-photo-os").click();
-    }
-
-    function uploadImage() {
-
-        var blobFile = document.getElementById("btn-click-photo-os").files[0];
-        var formData = new FormData();
-        formData.append("ergoimage", blobFile);
-
-        $.ajax({
-            url: "/image",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                // .. do something
-                var reply = JSON.parse(response);
-                console.log("Success! Server: " + reply.message);
-            },
-            error: function(jqXHR, textStatus, errorMessage) {
-                console.log(errorMessage); // Optional
-            }
-        });
-
-
     }
 
     </script>

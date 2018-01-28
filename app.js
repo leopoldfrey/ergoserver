@@ -3,6 +3,7 @@ var http        = require("http");
 var serveIndex  = require("serve-index");
 var multer      = require("multer");
 var fs          = require("fs");
+var path        = require("path");
 //var WebSocket   = require("ws");
 var WebSocket   = require("ws");
 var WebSocketServer   = WebSocket.Server;
@@ -123,7 +124,9 @@ app.post('/image', upload.single("ergoimage"), function (req, res) {
 
    var timeToAppend = date.getHours() + "h" + date.getMinutes() + "m" +  date.getSeconds() + "s" + date.getMilliseconds();
 
-   var file = __dirname + "/uploads/" + timeToAppend + "_" + currentStage +  "_" +  req.file.originalname;
+   //var file = __dirname + "/uploads/" + timeToAppend + "_" + currentStage + "_" +  req.file.originalname;
+   var type = req.file.mimetype.split("/")[1];
+   var file = __dirname + "/uploads/" + timeToAppend + "_" + currentStage + "_" + req.file.originalname + "." + type;
    file = file.replaceAll(" ", "_");
    fs.readFile( req.file.path, function (err, data) {
         fs.writeFile(file, data, function (err) {
@@ -251,6 +254,7 @@ wss.on('connection', function connection(ws) {
         currentStage = msg.stage;
         currentStandbyMessage = msg.standbyMsg;
 
+        // Broadcast
         wss.clients.forEach(function each(client) {
           if (client !== ws && client.readyState === WebSocket.OPEN) {
             console.log("Sending: " + currentStage);

@@ -7,6 +7,7 @@
 		<div id="text-to-send" contenteditable="true">FOCUS ON THE CONFERENCE2</div>
 		<div>
 			<!--button onclick="setClientsWS(0)">Pause</button-->
+			<button onclick="deleteAllServerData()">Delete ALL DATA!</button>
 			<button onclick="setClientsWS(0)">Pause</button>
 			<button onclick="setClientsWS(1)">Protocol 1</button>
 			<button onclick="setClientsWS(2)">Protocol 2</button>
@@ -68,6 +69,17 @@
 			standbyMsg: messageToSend
 		}));
 
+	}
+
+	function deleteAllServerData() {
+		if (!ws) {
+			console.log("No ws connection!");
+			return;
+		}
+
+		ws.send(JSON.stringify({
+			type:"deleteAllServerData"
+		}));
 	}
 
 	// function setClientsOSC(stage) {
