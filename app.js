@@ -282,6 +282,22 @@ wss.on('connection', function connection(ws) {
         }));
 
       break;
+      case "deleteAllServerData":
+        console.log("Deleting All Server Data");
+        
+        var directory = __dirname + "/uploads/";
+
+        fs.readdir(directory, (err, files) => {
+        if (err) throw err;
+
+        for (const file of files) {
+          fs.unlink(path.join(directory, file), err => {
+            if (err) throw err;
+          });
+        }
+      });
+
+      break;
     }
 
 
