@@ -118,7 +118,6 @@
             event.target.files[0],
             function (img) {
                 img.classList.add("img-result");
-                //img.id = "img-id";
 
                 // Append as first
                 var resultDiv = document.getElementById("imgResultDiv");
@@ -126,29 +125,29 @@
 
                 // https://www.codeforest.net/html5-image-upload-resize-and-crop
                 // Resize
-                //var MAX_WIDTH = 1000;
-                //var MAX_HEIGHT = 500;
-                //var tempW = tempImg.width;
-                //var tempH = tempImg.height;
-                //if (tempW > tempH) {
-                //    if (tempW > MAX_WIDTH) {
-                //       tempH *= MAX_WIDTH / tempW;
-                //       tempW = MAX_WIDTH;
-                //    }
-                //} else {
-                //    if (tempH > MAX_HEIGHT) {
-                //       tempW *= MAX_HEIGHT / tempH;
-                //       tempH = MAX_HEIGHT;
-                //    }
-                //}
+                var MAX_WIDTH = 1000;
+                var MAX_HEIGHT = 1000;
+                var tempW = img.naturalWidth;
+                var tempH = img.naturalHeight;
+                if (tempW > tempH) {
+                    if (tempW > MAX_WIDTH) {
+                       tempH *= MAX_WIDTH / tempW;
+                       tempW = MAX_WIDTH;
+                    }
+                } else {
+                    if (tempH > MAX_HEIGHT) {
+                       tempW *= MAX_HEIGHT / tempH;
+                       tempH = MAX_HEIGHT;
+                    }
+                }
 
-                //var canvas = document.createElement('canvas');
-                //canvas.width = tempW;
-                //canvas.height = tempH;
-                //var ctx = canvas.getContext("2d");
-                //ctx.drawImage(this, 0, 0, tempW, tempH);
-                //var dataURL = canvas.toDataURL("image/jpeg");
-                var dataURL = img.toDataURL("image/jpeg");
+                var canvas = document.createElement('canvas');
+                canvas.width = tempW;
+                canvas.height = tempH;
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, tempW, tempH);
+                var dataURL = canvas.toDataURL("image/jpeg");
+                //var dataURL = img.toDataURL("image/jpeg");
 
                 var blob = dataURLToBlob(dataURL);
 
@@ -158,9 +157,10 @@
                 document.getElementById('btn-click-photo-os').value = null;
             },
             {
-                maxWidth: 1000,
+                maxWidth: 3600
+                //maxWidth: 1000,
                 //minHeight: 1000,
-                canvas: true,
+                //canvas: true,
                 //orientation: true
             }
         );
