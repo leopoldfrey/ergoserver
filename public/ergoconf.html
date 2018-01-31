@@ -43,37 +43,8 @@
 
             document.getElementById("btn-click-photo-os").onchange = function (event) {
 
-                // New code
+                // Resize image and upload
                 resizeAndUpload();
-
-                /*
-                // Original code
-                var loadingImage = loadImage(
-                    event.target.files[0],
-                    function (img) {
-                        img.classList.add("img-result");
-                        img.id = "img-id";
-                        // Append as last
-                        //document.getElementById("imgResultDiv").appendChild(img);
-
-                        // Append as first
-                        var resultDiv = document.getElementById("imgResultDiv");
-                        resultDiv.insertBefore(img, resultDiv.firstChild);
-
-                        // Upload image to server
-                        uploadImage();
-                    },
-                    {
-                        maxWidth: 360
-                        //minHeight: 1000,
-                        //canvas: true,
-                        //orientation: true
-                    }
-                );
-                if (!loadingImage) {
-                    console.log("Error, image not loaded");
-                }
-                */
 
             };
 
@@ -113,61 +84,37 @@
     /* End Utility function to convert a canvas to a BLOB      */
 
     // https://www.codeforest.net/html5-image-upload-resize-and-crop
+
     function resizeAndUpload() {
         var loadingImage = loadImage(
             event.target.files[0],
-            function (img) {
-                img.classList.add("img-result");
-
-                // Append as first
-                var resultDiv = document.getElementById("imgResultDiv");
-                resultDiv.insertBefore(img, resultDiv.firstChild);
-
-                // https://www.codeforest.net/html5-image-upload-resize-and-crop
-                // Resize
-                var MAX_WIDTH = 1000;
-                var MAX_HEIGHT = 1000;
-                var tempW = img.naturalWidth;
-                var tempH = img.naturalHeight;
-                if (tempW > tempH) {
-                    if (tempW > MAX_WIDTH) {
-                       tempH *= MAX_WIDTH / tempW;
-                       tempW = MAX_WIDTH;
-                    }
-                } else {
-                    if (tempH > MAX_HEIGHT) {
-                       tempW *= MAX_HEIGHT / tempH;
-                       tempH = MAX_HEIGHT;
-                    }
-                }
-
-                var canvas = document.createElement('canvas');
-                canvas.width = tempW;
-                canvas.height = tempH;
-                var ctx = canvas.getContext("2d");
-                ctx.drawImage(img, 0, 0, tempW, tempH);
-                var dataURL = canvas.toDataURL("image/jpeg");
+            function (canvas) {
+                var dataURL = canvas.toDataURL("image/jpg");
                 //var dataURL = img.toDataURL("image/jpeg");
 
-                var blob = dataURLToBlob(dataURL);
+                // Insert on page
+                var resultDiv = document.getElementById("imgResultDiv");
+                canvas.classList.add("img-result");
+                resultDiv.insertBefore(canvas, resultDiv.firstChild);
 
+                // Transform to blob and upload
+                var blob = dataURLToBlob(dataURL);
                 uploadImageAsBlob(blob);
 
                 // In order to trigger again onchange
                 document.getElementById('btn-click-photo-os').value = null;
             },
             {
-                maxWidth: 3600
+                maxWidth: 1000,
                 //maxWidth: 1000,
                 //minHeight: 1000,
-                //canvas: true,
-                //orientation: true
+                canvas: true,
+                orientation: true
             }
         );
         if (!loadingImage) {
             console.log("Error, image not loaded");
         }
-
     }
 
     /*-- --*/
@@ -175,30 +122,6 @@
     function clickPhotoButton(e) {
         // Click the actual hidden button
         document.getElementById("btn-click-photo-os").click();
-    }
-
-    function uploadImage() {
-
-        var blobFile = document.getElementById("btn-click-photo-os").files[0];
-        var formData = new FormData();
-        formData.append("ergoimage", blobFile);
-
-        $.ajax({
-            url: "/image",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                // .. do something
-                var reply = JSON.parse(response);
-                console.log("Success! Server: " + reply.message);
-            },
-            error: function(jqXHR, textStatus, errorMessage) {
-                console.log(errorMessage); // Optional
-            }
-        });
-
     }
 
     function uploadImageAsBlob(blob) {
@@ -224,7 +147,6 @@
         });
 
     }
-
 
     /* -- Web Sockets -- */
     document.addEventListener("visibilitychange", function() {
