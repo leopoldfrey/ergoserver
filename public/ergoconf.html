@@ -89,8 +89,7 @@
         var loadingImage = loadImage(
             event.target.files[0],
             function (canvas) {
-                var dataURL = canvas.toDataURL("image/jpg");
-                //var dataURL = img.toDataURL("image/jpeg");
+                var dataURL = canvas.toDataURL("image/jpeg");
 
                 // Insert on page
                 var resultDiv = document.getElementById("imgResultDiv");
