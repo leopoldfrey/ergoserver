@@ -293,7 +293,7 @@ wss.on('connection', function connection(ws) {
           console.log(err);
         }
 
-        for (const file of files) {
+        for (var file of files) {
           fs.unlink(path.join(directory, file), err => {
             if (err) {
               console.log(err);
