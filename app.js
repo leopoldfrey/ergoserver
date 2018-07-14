@@ -35,6 +35,10 @@ app.get('/ergocontroller.html',function(req,res){
       res.sendFile(__dirname + "/public/ergocontroller.html");
 });
 
+app.get('/ergoselfdimention.html',function(req,res){
+      res.sendFile(__dirname + "/public/ergoselfdimention.html");
+});
+
 
 /*----------- Static Files -----------*/
 app.use('/vendor', express.static('public/vendor'));
