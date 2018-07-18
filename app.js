@@ -35,8 +35,9 @@ app.get('/ergocontroller.html',function(req,res){
       res.sendFile(__dirname + "/public/ergocontroller.html");
 });
 
-app.get('/ergoselfdimention.html',function(req,res){
-      res.sendFile(__dirname + "/public/ergoselfdimention.html");
+
+app.get('/ergoselfdimension.html',function(req,res){
+      res.sendFile(__dirname + "/public/ergoselfdimension.html");
 });
 
 
