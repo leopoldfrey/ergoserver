@@ -46,6 +46,7 @@ app.get('/ergoselfdimension.html',function(req,res){
 });
 
 
+
 /*----------- Static Files -----------*/
 app.use('/vendor', express.static('public/vendor'));
 app.use('/css', express.static('public/css'));
