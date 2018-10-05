@@ -60,7 +60,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 server.listen(port,function() {
-    console.log("Web Server listening port " + webServerPort);
+    console.log("Web Server listening port " + port);
 });
 /*----------- Static Files -----------*/
 
