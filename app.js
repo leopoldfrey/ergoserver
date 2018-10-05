@@ -17,7 +17,7 @@ var server = http.createServer(app);
 
 /* PARAMETERS */
 
-# use alternate localhost and the port Heroku assigns to $PORT
+// use alternate localhost and the port Heroku assigns to $PORT
 const port = process.env.PORT || 3000;
 
 
