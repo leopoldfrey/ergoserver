@@ -16,7 +16,12 @@ var server = http.createServer(app);
 
 
 /* PARAMETERS */
-var webServerPort = 8080; // Web server (http) listens on this port
+
+# use alternate localhost and the port Heroku assigns to $PORT
+const port = process.env.PORT || 3000;
+
+
+//var webServerPort = 8080; // Web server (http) listens on this port
 //var webSocketServerPort = 8000; // Web socket for changing protocols
 // var oSCServerPort = 8082; // OSC Server listents on this port
 
@@ -53,7 +58,7 @@ app.use('/uploads', serveIndex(__dirname + '/uploads'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-server.listen(webServerPort,function() {
+server.listen(port,function() {
     console.log("Web Server listening port " + webServerPort);
 });
 /*----------- Static Files -----------*/
