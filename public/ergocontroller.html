@@ -14,14 +14,15 @@
 			<button onclick="setClientsWS(3)">Protocol 3</button>
 			<button onclick="setClientsWS(4)">Protocol 4</button>
 		</div>
-	</body>
+		<script>
+		</script>
 	<script>
 
 	var ws;
     //var wsServer = "ws://" + window.location.hostname + "/ws";
     //var wsServer = "ws://" + window.location.hostname + ":8080";
-    var wsServer = "ws://" + window.location.hostname + ":" + location.port + "/ws";
-
+    var wsServer = "wss://" + window.location.hostname + ":" + location.port + "/wss";
+	document.write("Socket Server : "+wsServer);
    //  var osc = new OSC();
   	// osc.open({ host:window.location.hostname, port: 8082}); // connect by default to ws://localhost:8080
 	
@@ -87,4 +88,5 @@
 	// }
 	
 	</script>
+	</body>
 </html>
