@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- guide: https://davidwalsh.name/html5-camera-video-iphone -->
-<!-- https://github.com/blueimp/JavaScript-Load-Image -->
 <head>
 
     <meta charset="utf-8">
@@ -12,13 +10,12 @@
 
     <title>ERGONOMICS</title>
 
-    <!-- Bootstrap Core CSS -->
-    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Theme CSS -->
     <!--link href="css/grayscale.min.css" rel="stylesheet"-->
     <link href="css/grayscale.css" rel="stylesheet">
-
  
     <style>
     .img-result {
@@ -30,22 +27,27 @@
         background-color: white;
         color: black;
         height: 78px;
-        padding-top: 15px;
         border-radius: 17px;
         position: fixed;
         bottom: 40px;
         left: 40px;
+        display: flex;
+        justify-content: center; /* centre horizontalement */
+        align-items: center; 
     }
 
     .btn-click-share {
         background-color: white;
         color: black;
         height: 78px;
-        padding-top: 26px;
+        /* padding-top: 26px; */
         border-radius: 17px;
         position: fixed;
         bottom: 40px;
         right: 40px;
+        display: flex;
+        justify-content: center; /* centre horizontalement */
+        align-items: center; 
     }
     </style>
 
@@ -85,14 +87,8 @@
         
     </section>
 
-    <!-- jQuery -->
-    <script src="vendor/jquery/jquery.js"></script>
-
-    <!-- Bootstrap Core JavaScript -->
-    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
-
-    <!-- Plugin JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+    <!-- Bootstrap 5 JavaScript Bundle via CDN (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Theme JavaScript -->
     <!--script src="js/grayscale.min.js"></script-->
@@ -166,9 +162,9 @@ function uploadFilesWS(files) {
                 canvas.getContext("2d").drawImage(img, 0, 0, w, h);
 
                 // Ajouter sur page
-                const resultDiv = document.getElementById("imgResultDiv");
-                canvas.classList.add("img-result");
-                resultDiv.insertBefore(canvas, resultDiv.firstChild);
+                // const resultDiv = document.getElementById("imgResultDiv");
+                // canvas.classList.add("img-result");
+                // resultDiv.insertBefore(canvas, resultDiv.firstChild);
 
                 canvas.toBlob((blob) => {
                     const reader2 = new FileReader();

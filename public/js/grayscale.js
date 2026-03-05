@@ -2,34 +2,70 @@
  * Start Bootstrap - Grayscale Bootstrap Theme (http://startbootstrap.com)
  * Code licensed under the Apache License v2.0.
  * For details, see http://www.apache.org/licenses/LICENSE-2.0.
+ * Refactored for Bootstrap 5 without jQuery
  */
 
-// jQuery to collapse the navbar on scroll
+// Vanilla JS to collapse the navbar on scroll
 function collapseNavbar() {
-    if ($(".navbar").offset().top > 50) {
-        $(".navbar-fixed-top").addClass("top-nav-collapse");
-    } else {
-        $(".navbar-fixed-top").removeClass("top-nav-collapse");
+    const navbar = document.querySelector(".navbar-fixed-top");
+    if (navbar) {
+        if (window.scrollY > 50) {
+            navbar.classList.add("top-nav-collapse");
+        } else {
+            navbar.classList.remove("top-nav-collapse");
+        }
     }
 }
 
-$(window).scroll(collapseNavbar);
-$(document).ready(collapseNavbar);
+window.addEventListener("scroll", collapseNavbar);
+document.addEventListener("DOMContentLoaded", collapseNavbar);
 
-// jQuery for page scrolling feature - requires jQuery Easing plugin
-$(function() {
-    $('a.page-scroll').bind('click', function(event) {
-        var $anchor = $(this);
-        $('html, body').stop().animate({
-            scrollTop: $($anchor.attr('href')).offset().top
-        }, 1500, 'easeInOutExpo');
-        event.preventDefault();
+// Vanilla JS for page scrolling feature
+function smoothScroll(target, duration = 1500) {
+    const element = document.querySelector(target);
+    if (!element) return;
+    
+    const targetPosition = element.offsetTop;
+    const startPosition = window.scrollY;
+    const distance = targetPosition - startPosition;
+    let start = null;
+    
+    function animation(currentTime) {
+        if (start === null) start = currentTime;
+        const timeElapsed = currentTime - start;
+        const easeInOutExpo = timeElapsed === 0 ? 0 : 
+            timeElapsed === duration ? distance : 
+            distance * (2 - (timeElapsed / duration <= 1 ? 2 - timeElapsed / duration : 0) ** (1 / 2));
+        
+        window.scrollBy(0, easeInOutExpo);
+        if (timeElapsed < duration) {
+            requestAnimationFrame(animation);
+        }
+    }
+    
+    requestAnimationFrame(animation);
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Page scroll links
+    document.querySelectorAll('a.page-scroll').forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            const href = this.getAttribute('href');
+            smoothScroll(href);
+        });
     });
-});
-
-// Closes the Responsive Menu on Menu Item Click
-$('.navbar-collapse ul li a').click(function() {
-    $(".navbar-collapse").collapse('hide');
+    
+    // Closes the Responsive Menu on Menu Item Click
+    document.querySelectorAll('.navbar-collapse ul li a').forEach(link => {
+        link.addEventListener('click', function() {
+            const collapseElement = document.querySelector('.navbar-collapse');
+            if (collapseElement) {
+                const bsCollapse = new bootstrap.Collapse(collapseElement, { toggle: true });
+                bsCollapse.hide();
+            }
+        });
+    });
 });
 
 // Google Maps Scripts

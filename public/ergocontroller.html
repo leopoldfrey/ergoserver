@@ -1,26 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
 <html>
-	<head>
-		<!--script src="js/osc.min.js"></script-->
-	</head>
-	<body style="width: 100%; height: 100%">
-		Listening to clients
-		<div id="text-to-send" contenteditable="true">FOCUS ON THE CONFERENCE</div>
-		<div>
-			<!--button onclick="setClientsWS(0)">Pause</button-->
-			<button onclick="deleteAllServerData()">Delete ALL DATA!</button>
-			<button onclick="setClientsWS(0)">Pause</button>
-			<button onclick="setClientsWS(1)">Protocol 1</button>
-			<button onclick="setClientsWS(2)">Protocol 2</button>
-			<button onclick="setClientsWS(3)">Protocol 3</button>
-			<button onclick="setClientsWS(4)">Protocol 4</button>
-			<button onclick='ws.send(JSON.stringify({type:"broadcast", stage:0, standbyMsg:"TEST"}))'>Test WS</button>
+<head>
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+	<title>ERGOCONTROLLER</title>
+
+	<!-- Bootstrap 5 CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome 6 CSS via CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+
+    <!-- Theme CSS -->
+    <link href="css/grayscale.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<style>
+	.btn-controler {
+		margin: auto;
+		width: 150px;
+	}
+	#text-to-send {
+
+		margin:20px; padding:20px; background-color: white; color: black; border-radius: 17px;
+	}
+	#text-to-send:focus {
+		outline: none;
+		box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+		border-color: #007bff;
+	}
+	#text-to-send::selection {
+		background-color: red;
+	}
+</style>
+
+<body id="page-top" data-spy="scroll" data-target=".navbar-fixed-top">
+
+		<nav class="navbar navbar-custom navbar-fixed-top" role="navigation" style="display:none">
+	    </nav>
+		
+
+		<section id="main" style="padding-top:30px" class="container content-section text-center">
+        <div class="row">
+    		<h1 style="font-size: 58px; margin-bottom:10px">ERGOCONTROLLER</h1>
+        </div>
+		<div class="row">
+    		<input type="text" id="text-to-send" value="FOCUS ON THE CONFERENCE">
 		</div>
-		<script>
-		</script>
+		<div class="row" style="display: grid; grid-row-gap: 20px;">
+			<!--button onclick="setClientsWS(0)">Pause</button-->
+			<button class="btn btn-default btn-controler" onclick="deleteAllServerData()">Delete ALL DATA!</button>
+			<button class="btn btn-default btn-controler" onclick="setClientsWS(0)">Pause</button>
+			<button class="btn btn-default btn-controler" onclick="setClientsWS(1)">Protocol 1</button>
+			<button class="btn btn-default btn-controler" onclick="setClientsWS(2)">Protocol 2</button>
+			<button class="btn btn-default btn-controler" onclick="setClientsWS(3)">Protocol 3</button>
+			<button class="btn btn-default btn-controler" onclick="setClientsWS(4)">Protocol 4</button>
+			<button class="btn btn-default btn-controler" onclick='ws.send(JSON.stringify({type:"broadcast", stage:0, standbyMsg:"TEST"}))'>Test WS</button>
+		</div>
+		<div class="row" style="display: grid; grid-row-gap: 20px;">
+		</div>
+
+	<!-- Bootstrap 5 JavaScript Bundle via CDN (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Theme JavaScript -->
+    <script src="js/grayscale.js"></script>
+
 	<script>
 		var ws;
 		var wsServer = (location.protocol === "https:" ? "wss://" : "ws://") + location.host;
 		console.log("Socket Server: " + wsServer);
+
+		var tts = document.getElementById("text-to-send");
+		tts.addEventListener("click", function() {
+			console.log("Text to send clicked, selecting text");
+			tts.select();
+		});
 
 		document.addEventListener("DOMContentLoaded", function(event) {
 			ws = new WebSocket(wsServer);
@@ -44,7 +111,7 @@
 				return;
 			}
 
-			let messageToSend = stage === 0 ? document.getElementById("text-to-send").innerHTML : "";
+			let messageToSend = stage === 0 ? document.getElementById("text-to-send").value : "";
 
 			ws.send(JSON.stringify({
 				type: "broadcast",
