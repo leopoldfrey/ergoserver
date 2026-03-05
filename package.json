@@ -1,10 +1,13 @@
 {
   "name": "ergoserver",
   "version": "1.0.0",
-  "description": "",
+  "description": "Server for Ergo conference with WebSocket, image upload and mail handling",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js"
+  },
+  "engines": {
+    "node": "20.x"
   },
   "repository": {
     "type": "git",
