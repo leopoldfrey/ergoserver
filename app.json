@@ -1,6 +1,6 @@
 {
   "name": "ergoserver",
-  "stack": "heroku-22",
+  "stack": "heroku-24",
   "scripts": {
   },
   "env": {
