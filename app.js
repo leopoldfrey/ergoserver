@@ -46,6 +46,7 @@ ws.on("message", (data) => {
             // Vérifier si c'est un message image (header + image)
             if (data.length > 4) {
                 const headerLen = data.readUInt32BE(0); // premiers 4 octets = header length
+                console.log("Header length:", headerLen, "Data length:", data.length);
                 //console.log("Header length:", headerLen);
                 if (4 + headerLen <= data.length) {
                     //const headerBuf = data.slice(4, 4 + headerLen);
