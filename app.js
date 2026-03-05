@@ -49,7 +49,7 @@ ws.on("message", (data) => {
                 console.log("Header length:", headerLen, "Data length:", data.length);
                 //console.log("Header length:", headerLen);
                 if (4 + headerLen <= data.length) {
-                    //const headerBuf = data.slice(4, 4 + headerLen);
+                    const headerBuf = data.slice(4, 4 + headerLen);
                     let header;
                     try {
                         header = JSON.parse(headerBuf.toString("utf8"));
