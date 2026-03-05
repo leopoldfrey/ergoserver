@@ -1,15 +1,26 @@
 {
-  "name": "erg-server",
-  "version": "0.0.1",
+  "name": "ergoserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leopoldfrey/ergoserver.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/leopoldfrey/ergoserver/issues"
+  },
+  "homepage": "https://github.com/leopoldfrey/ergoserver#readme",
   "dependencies": {
-    "express": "4.13.3",
-    "multer": "1.1.0",
-    "fs": "latest",
-    "ws": "latest",
-    "body-parser": "latest",
-    "serve-index": "latest"
+    "express": "^5.2.1",
+    "serve-index": "^1.9.2",
+    "ws": "^8.19.0"
   }
 }

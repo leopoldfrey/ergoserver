@@ -44,19 +44,48 @@
         };
 
     });
+    
+    // --- Variables globales ---
+    let ws;
 
-    // Link click submit to server
+    // --- Connect WebSocket ---
+    function connectToWS() {
+        ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/wss");
+
+        ws.onopen = () => console.log("Connected to WS server");
+        ws.onerror = (err) => console.error("WS Error:", err);
+
+        ws.onmessage = (e) => {
+            console.log("WS message:", e.data);
+            try {
+                const msg = JSON.parse(e.data);
+                if(msg.type === "mailAck") {
+                    console.log("Server acknowledged mail:", msg.status);
+                }
+            } catch {}
+        };
+
+        ws.onclose = () => {
+            console.warn("WS closed, reconnecting in 1s...");
+            setTimeout(connectToWS, 1000);
+        };
+    }
+    connectToWS();
+
+    // --- Envoi de mail via WS ---
     function sendMail() {
+        const mailValue = document.getElementById("mail").value;
+        if(!ws || ws.readyState !== WebSocket.OPEN) {
+            console.warn("WS not open, cannot send mail");
+            return;
+        }
 
-        $.post("/mail",{mail: document.getElementById("mail").value}, function(data){
-            if(data==="ok") {
-                console.log("Success sending e-mail");
-              }
-          });
+        ws.send(JSON.stringify({ type: "mail", mail: mailValue }));
+        console.log("Mail sent via WS:", mailValue);
 
+        // Redirection
         window.location.href = '/ergoconf.html';
     }
-
     </script>
 
 </head>
