@@ -1,18 +1,16 @@
 {
   "name": "ergoserver",
-  "stack": "heroku-22",
+  "stack": "heroku-24",
   "scripts": {
+    "postdeploy": "echo 'App deployed!'"
   },
-  "env": {
-  },
+  "env": {},
   "formation": {
     "web": {
       "quantity": 1
     }
   },
-  "addons": [
-
-  ],
+  "addons": [],
   "buildpacks": [
     {
       "url": "heroku/nodejs"

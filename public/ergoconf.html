@@ -19,254 +19,7 @@
     <!--link href="css/grayscale.min.css" rel="stylesheet"-->
     <link href="css/grayscale.css" rel="stylesheet">
 
-    <!-- Img processing from phone -->
-    <script src="js/load-image.all.min.js"></script>
-    
-    <script>
-
-    var ws;
-    //var wsServer = "ws://" + window.location.hostname + "/ws";
-    var wsServer = "wss://" + window.location.hostname + ":" + location.port + "/wss";
-
-    var oldStage = -1;
-
-    /* Onload */
-    document.addEventListener("DOMContentLoaded", function(event) {
-
-        // Buttons
-        document.getElementById("btn-click-photo").onclick = clickPhotoButton;
-        document.getElementById("btn-click-share").onclick = clickPhotoButton;
-
-        /* -- Image Processing -- */
-        
-        if (window.File && window.FileReader && window.FormData) {
-
-            document.getElementById("btn-click-photo-os").onchange = function (event) {
-
-                // Resize image and upload
-                resizeAndUpload();
-
-            };
-
-        } else {
-            alert("File upload is not supported!");
-        }
-        
-        connectToWS();
-
-    });
-
-    /* Utility function to convert a canvas to a BLOB */
-    var dataURLToBlob = function(dataURL) {
-      console.log("DataURLToBlob")
-        var BASE64_MARKER = ';base64,';
-        if (dataURL.indexOf(BASE64_MARKER) == -1) {
-            var parts = dataURL.split(',');
-            var contentType = parts[0].split(':')[1];
-            var raw = parts[1];
-
-            return new Blob([raw], {type: contentType});
-        }
-
-        var parts = dataURL.split(BASE64_MARKER);
-        var contentType = parts[0].split(':')[1];
-        var raw = window.atob(parts[1]);
-        var rawLength = raw.length;
-
-        var uInt8Array = new Uint8Array(rawLength);
-
-        for (var i = 0; i < rawLength; ++i) {
-            uInt8Array[i] = raw.charCodeAt(i);
-        }
-
-        return new Blob([uInt8Array], {type: contentType});
-    }
-    /* End Utility function to convert a canvas to a BLOB      */
-
-    // https://www.codeforest.net/html5-image-upload-resize-and-crop
-
-    function resizeAndUpload() {
-        var loadingImage = loadImage(
-            event.target.files[0],
-            function (canvas) {
-                var dataURL = canvas.toDataURL("image/jpeg");
-
-                // Insert on page
-                var resultDiv = document.getElementById("imgResultDiv");
-                canvas.classList.add("img-result");
-                resultDiv.insertBefore(canvas, resultDiv.firstChild);
-
-                // Transform to blob and upload
-                var blob = dataURLToBlob(dataURL);
-                uploadImageAsBlob(blob);
-
-                // In order to trigger again onchange
-                document.getElementById('btn-click-photo-os').value = null;
-            },
-            {
-                maxWidth: 1000,
-                //maxWidth: 1000,
-                //minHeight: 1000,
-                canvas: true,
-                orientation: true
-            }
-        );
-        if (!loadingImage) {
-            console.log("Error, image not loaded");
-        }
-    }
-
-    /*-- --*/
-
-    function clickPhotoButton(e) {
-        // Click the actual hidden button
-        document.getElementById("btn-click-photo-os").click();
-    }
-
-    function uploadImageAsBlob(blob) {
-
-        //var blobFile = document.getElementById("btn-click-photo-os").files[0];
-        var formData = new FormData();
-        formData.append("ergoimage", blob);
-
-        $.ajax({
-            url: "/image",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                // .. do something
-                var reply = JSON.parse(response);
-                console.log("Success! Server: " + reply.message);
-            },
-            error: function(jqXHR, textStatus, errorMessage) {
-                console.log(errorMessage); // Optional
-            }
-        });
-
-    }
-
-    /* -- Web Sockets -- */
-    document.addEventListener("visibilitychange", function() {
-        console.log("Visibility changed to: " + document.visibilityState);
-        if(document.visibilityState == "visible" ) {
-            checkWSStateAndReconnectIfNecessary(ws.readyState);
-
-            // Check again in one second
-            setTimeout(function(){
-                checkWSStateAndReconnectIfNecessary(ws.readyState);
-            }, 3000);
-        }
-        // if(document.visibilityState == "hidden" ) {
-        //     ws.close();
-        // }
-    });
-
-    document.addEventListener("onfocus", function() {
-        console.log("Gained focus");
-        checkWSStateAndReconnectIfNecessary(ws.readyState);
-
-        // Check again in one second
-        setTimeout(function(){
-            checkWSStateAndReconnectIfNecessary(ws.readyState);
-        }, 3000);
-    });
-
-    function connectToWS() {
-        // Connect to websocket server
-        ws = new WebSocket(wsServer);
-
-        // Log messages from the server
-        ws.onmessage = function (e) {
-            console.log("Recived message: " + e.data);
-            var reply = JSON.parse(e.data);
-            if (reply.type == "changeState" || reply.type == "initState") {
-                setStage(reply.stage, reply.standbyMsg);
-            } else {
-                console.log("Unknown state received from server: " + reply.type);
-            }
-        };
-
-        // Log errors
-        ws.onerror = function (error) {
-            console.error("WebSocket Error " + error);
-        };
-
-        ws.onopen = function (event) {
-            console.log("Connected to ws server");
-
-            ws.send(
-                JSON.stringify(
-                {
-                    type:"getInit",
-                    stage:""
-                })
-            , function (err) {
-                if (err) {
-                    console.log("Error sending init");
-                } else {
-                    console.log("Success sending init");
-                }
-                
-            });
-            
-        };
-
-    }
-
-
-    function checkWSStateAndReconnectIfNecessary(wsReadyState) {
-        switch(wsReadyState) {
-            case ws.CONNECTING:
-                console.log("WebSocket Connecting...");
-                break;
-            case ws.OPEN:
-                console.log("WebSocket Open :)");
-                break;
-            case ws.CLOSING:
-                console.log("WebSocket Closing...");
-                break;
-            case ws.CLOSED:
-                console.log("WebSocket Closed :(");
-                connectToWS();
-                break;
-        }
-
-    }
-
-    function setStage(stage, standbyMsg) {
-
-        switch(parseInt(stage)) {
-            case 0:
-                document.getElementById("section-standBy").style.display = "";
-                document.getElementById("section-protocol").style.display = "none";
-                document.getElementById("msg-standby").innerHTML = standbyMsg;
-            break;
-
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-                if (oldStage != stage) {
-                    document.getElementById("section-standBy").style.display = "none";
-                    document.getElementById("section-protocol").style.display = "";
-                    document.getElementById("protocol-id").innerHTML = stage;
-                    var imgResultDiv = document.getElementById("imgResultDiv");
-                    while (imgResultDiv.firstChild) {
-                        imgResultDiv.removeChild(imgResultDiv.firstChild);
-                    }
-                }
-                
-            break;
-        }
-
-        oldStage = stage;
-    }
-
-    </script>
-
+ 
     <style>
     .img-result {
         width:80%;
@@ -344,6 +97,171 @@
     <!-- Theme JavaScript -->
     <!--script src="js/grayscale.min.js"></script-->
     <script src="js/grayscale.js"></script>
+
+       <!-- Img processing from phone -->
+    <script src="js/load-image.all.min.js"></script>
+    
+    <script>
+
+    let ws;
+let oldStage = -1;
+const wsServer = (location.protocol === "https:" ? "wss://" : "ws://") + location.host;
+
+// ------------------- INIT -------------------
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("btn-click-photo").onclick = clickPhotoButton;
+    document.getElementById("btn-click-share").onclick = clickPhotoButton;
+
+    if (window.File && window.FileReader) {
+        document.getElementById("btn-click-photo-os").onchange = (e) => uploadFilesWS(e.target.files);
+    }
+
+    connectToWS();
+});
+
+// ------------------- WEBSOCKET -------------------
+function connectToWS() {
+    ws = new WebSocket(wsServer);
+    ws.binaryType = "arraybuffer";
+
+    ws.onopen = () => ws.send(JSON.stringify({ type: "getInit" }));
+
+    ws.onmessage = (event) => {
+        try {
+            const msg = typeof event.data === "string" ? JSON.parse(event.data) : null;
+            if (!msg) return;
+            if (msg.type === "changeState" || msg.type === "initState") setStage(msg.stage, msg.standbyMsg);
+            if (msg.type === "newimage") displayImage(msg.standbyMsg);
+        } catch {}
+    };
+
+    ws.onerror = console.error;
+    ws.onclose = () => setTimeout(connectToWS, 2000);
+}
+
+function checkWS() {
+    if (!ws || ws.readyState === WebSocket.CLOSED) connectToWS();
+}
+
+function clickPhotoButton() { document.getElementById("btn-click-photo-os").click(); }
+
+// ------------------- IMAGE UPLOAD WS BINAIRE -------------------
+function uploadFilesWS(files) {
+    const MAX_WIDTH = 1000;
+    const MAX_HEIGHT = 1000;
+    const QUALITY = 0.7;
+
+    for (let file of files) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            // Redimensionner + compression
+            const img = new Image();
+            img.onload = () => {
+                let w = img.width, h = img.height;
+                if (w > MAX_WIDTH) { h = (MAX_WIDTH / w) * h; w = MAX_WIDTH; }
+                if (h > MAX_HEIGHT) { w = (MAX_HEIGHT / h) * w; h = MAX_HEIGHT; }
+
+                const canvas = document.createElement("canvas");
+                canvas.width = w; canvas.height = h;
+                canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+
+                // Ajouter sur page
+                const resultDiv = document.getElementById("imgResultDiv");
+                canvas.classList.add("img-result");
+                resultDiv.insertBefore(canvas, resultDiv.firstChild);
+
+                canvas.toBlob((blob) => {
+                    const reader2 = new FileReader();
+                    reader2.onload = (ev) => sendBinary(blob, file.name);
+                    reader2.readAsArrayBuffer(blob);
+                }, "image/jpeg", QUALITY);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function sendBinary(blob, filename) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+        console.warn("WebSocket not open, cannot send image");
+        return;
+    }
+
+    try {
+        // Préparer le header JSON
+        const header = { type: "uploadImage", name: filename.replace(/\s+/g, "_"), stage: oldStage };
+        const headerJson = JSON.stringify(header);
+        const encoder = new TextEncoder();
+        const headerBuffer = encoder.encode(headerJson);
+
+        // Buffer de 4 octets pour la longueur du header (Big Endian)
+        const headerLengthBuffer = new ArrayBuffer(4);
+        const view = new DataView(headerLengthBuffer);
+        view.setUint32(0, headerBuffer.byteLength, false); // false = Big Endian
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const imageBuffer = e.target.result;
+
+            // Concaténer [4 bytes header length][header JSON][image]
+            const combined = new Uint8Array(4 + headerBuffer.byteLength + imageBuffer.byteLength);
+            combined.set(new Uint8Array(headerLengthBuffer), 0);
+            combined.set(headerBuffer, 4);
+            combined.set(new Uint8Array(imageBuffer), 4 + headerBuffer.byteLength);
+
+            // Envoyer via WebSocket
+            ws.send(combined.buffer);
+            console.log("Image sent:", filename, "Header length:", headerBuffer.byteLength);
+        };
+
+        reader.onerror = (err) => {
+            console.error("Error reading image blob:", err);
+        };
+
+        reader.readAsArrayBuffer(blob);
+
+    } catch (err) {
+        console.error("Error in sendBinary:", err);
+    }
+}
+
+// ------------------- STAGE / UI -------------------
+function setStage(stage, standbyMsg) {
+    switch (parseInt(stage)) {
+        case 0:
+            document.getElementById("section-standBy").style.display = "";
+            document.getElementById("section-protocol").style.display = "none";
+            document.getElementById("msg-standby").innerHTML = standbyMsg;
+            break;
+        default:
+            if (oldStage != stage) {
+                document.getElementById("section-standBy").style.display = "none";
+                document.getElementById("section-protocol").style.display = "";
+                document.getElementById("protocol-id").innerHTML = stage;
+                const imgResultDiv = document.getElementById("imgResultDiv");
+                while (imgResultDiv.firstChild) imgResultDiv.removeChild(imgResultDiv.firstChild);
+            }
+            break;
+    }
+    oldStage = stage;
+}
+
+// ------------------- DISPLAY IMAGE -------------------
+function displayImage(filename) {
+    const imgResultDiv = document.getElementById("imgResultDiv");
+    const img = document.createElement("img");
+    img.src = "/uploads/" + filename;
+    img.classList.add("img-result");
+    imgResultDiv.insertBefore(img, imgResultDiv.firstChild);
+}
+
+// ------------------- VISIBILITY / FOCUS -------------------
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { checkWS(); setTimeout(checkWS, 3000); } });
+window.addEventListener("focus", () => { checkWS(); setTimeout(checkWS, 3000); });
+
+    </script>
+
 
 </body>
 

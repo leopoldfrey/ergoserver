@@ -1,207 +1,153 @@
-var express     = require("express");
-var http        = require("http");
-var serveIndex  = require("serve-index");
-var multer      = require("multer");
-var fs          = require("fs");
-var path        = require("path");
-var WebSocket   = require("ws");
-var WebSocketServer   = WebSocket.Server;
-var bodyParser  = require("body-parser");
+const express = require("express");
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+const WebSocket = require("ws");
+const serveIndex = require("serve-index");
 
-var app         =   express();
-var server = http.createServer(app);
+const app = express();
+const server = http.createServer(app);
 
-
-/* PARAMETERS */
-
-// use alternate localhost and the port Heroku assigns to $PORT
 const port = process.env.PORT || 3000;
-//var webServerPort = 8080; // Web server (http) listens on this port
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
-app.get('/',function(req,res){
-      res.sendFile(__dirname + "/public/index.html");
-});
+// ------------------- ROUTES HTML -------------------
+app.get("/", (req, res) => res.sendFile(__dirname + "/public/index.html"));
+app.get("/ergoconf.html", (req, res) => res.sendFile(__dirname + "/public/ergoconf.html"));
+app.get("/ergocontroller.html", (req, res) => res.sendFile(__dirname + "/public/ergocontroller.html"));
+app.get("/ergoselfdimension.html", (req, res) => res.sendFile(__dirname + "/public/ergoselfdimension.html"));
 
-app.get('/ergoconf.html',function(req,res){
-      res.sendFile(__dirname + "/public/ergoconf.html");
-});
-
-app.get('/ergocontroller.html',function(req,res){
-      res.sendFile(__dirname + "/public/ergocontroller.html");
-});
-
-
-app.get('/ergoselfdimension.html',function(req,res){
-      res.sendFile(__dirname + "/public/ergoselfdimension.html");
-});
-
-
-/*----------- Static Files -----------*/
+// ------------------- STATIC -------------------
 app.use('/vendor', express.static('public/vendor'));
 app.use('/css', express.static('public/css'));
 app.use('/js', express.static('public/js'));
 app.use('/img', express.static('public/img'));
+app.use('/uploads', express.static(uploadDir));
+app.use('/uploads', serveIndex(uploadDir));
 
-app.use('/uploads', express.static('uploads'));
-app.use('/uploads', serveIndex(__dirname + '/uploads'));
+// ------------------- START SERVER -------------------
+server.listen(port, () => console.log("Web Server listening on port", port));
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+// ------------------- WEBSOCKET -------------------
+const wss = new WebSocket.Server({ server });
+let currentStage = 0;
+let currentStandbyMessage = "FOCUS ON THE CONFERENCE";
 
-server.listen(port,function() {
-    console.log("Web Server listening port " + port);
-});
-/*----------- Static Files -----------*/
+wss.on("connection", (ws) => {
+    console.log("New WS connection");
 
-// Tools
-String.prototype.replaceAll = function(search, replacement) {
-  var target = this;
-  return target.replace(new RegExp(search, 'g'), replacement);
-};
+ws.on("message", (data) => {
+    //console.log("Received raw message:", data); // <- debug
 
+    try {
+        // 1️⃣ Tout est Buffer en Node
+        if (Buffer.isBuffer(data)) {
+            // Vérifier si c'est un message image (header + image)
+            if (data.length > 4) {
+                const headerLen = data.readUInt32BE(0); // premiers 4 octets = header length
+                console.log("Header length:", headerLen, "Data length:", data.length);
+                //console.log("Header length:", headerLen);
+                if (4 + headerLen <= data.length) {
+                    const headerBuf = data.slice(4, 4 + headerLen);
+                    let header;
+                    try {
+                        header = JSON.parse(headerBuf.toString("utf8"));
+                    } catch {
+                        header = null;
+                    }
 
-/*----------- Img receive -----------*/
+                    //console.log("Parsed header:", header);
+                    if (header && header.type === "uploadImage") {
+                        console.log("Processing image upload...");
+                        const imgBuf = data.slice(4 + headerLen);
+                        const filename = `${Date.now()}_${header.name.replace(/\s+/g, "_")}`;
+                        const filepath = path.join(uploadDir, filename);
+                        try {
+                          fs.writeFileSync(filepath, imgBuf);
+                        } catch (err) {
+                          console.error("Failed to save image:", err);
+                          return;
+                        }
+                        console.log("Image saved:", filename);
 
-var upload = multer({ dest: '/tmp' })
-
-app.post('/image', upload.single("ergoimage"), function (req, res) {
-   console.log("Receiving image..");
-   var date = new Date();
-
-   var timeToAppend = date.getHours() + "h" + date.getMinutes() + "m" +  date.getSeconds() + "s" + date.getMilliseconds();
-
-   //var file = __dirname + "/uploads/" + timeToAppend + "_" + currentStage + "_" +  req.file.originalname;
-   var type = req.file.mimetype.split("/")[1];
-   var file = __dirname + "/uploads/" + timeToAppend + "_" + currentStage + "_" + req.file.originalname + "." + type;
-   file = file.replaceAll(" ", "_");
-   fs.readFile( req.file.path, function (err, data) {
-        fs.writeFile(file, data, function (err) {
-         if( err ){
-              console.error( err );
-              response = {
-                   message: 'Sorry, file could not be uploaded.',
-                   filename: req.file.originalname
-              };
-         }else{
-               console.log("Image saved");
-               response = {
-                   message: 'File uploaded successfully',
-                   filename: req.file.originalname
-              };
-
-              wss.clients.forEach(function each(client) {
-                if (client !== wss && client.readyState === WebSocket.OPEN) {
-                  console.log("Sending new img upload");
-                  client.send(
-                    JSON.stringify(
-                    {
-                      type: "newimage",
-                      stage: currentStage,
-                      standbyMsg: file
-                    }));
+                        broadcast({
+                            type: "newimage",
+                            standbyMsg: filename,
+                            stage: header.stage
+                        });
+                        return; // terminé
+                    }
                 }
-              });
-          }
-          res.end( JSON.stringify( response ) );
-       });
-   });
-});
-
-/*----------- Mail receive -----------*/
-// https://codeforgeek.com/2014/09/handle-get-post-request-express-4/
-app.post('/mail', function (req, res) {
-  console.log("Receiving e-mail..");
-
-  var file = __dirname + "/uploads/mails.txt";
-
-  if (req.body.mail) {
-    fs.appendFile(file, req.body.mail + "\r\n", function (err) {
-      if (err) {
-        console.log("Error saving e-mail on file");
-      } else {
-        console.log('E-mail saved');
-      }
-    });
-  } else {
-    console.log("Error: e-mail received invalid");  
-  }
-  
-  res.end("ok");
-})
-
-/*----------- WS Server -----------*/
-
-const wss = new WebSocketServer({
-    server: server,
-    autoAcceptConnections: true
-});
-
-var currentStage = 0;
-var currentStandbyMessage = "FOCUS ON THE CONFERENCE";
-
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-    console.log('Received: %s', message);
-
-    var msg = JSON.parse(message);
-    
-    switch(msg.type) {
-      case "broadcast":
-        currentStage = msg.stage;
-        currentStandbyMessage = msg.standbyMsg;
-
-        // Broadcast
-        wss.clients.forEach(function each(client) {
-          if (client !== ws && client.readyState === WebSocket.OPEN) {
-            console.log("Sending: " + currentStage);
-            client.send(
-              JSON.stringify(
-              {
-                type: "changeState",
-                stage: currentStage,
-                standbyMsg: currentStandbyMessage
-              }));
-          }
-        });
-
-      break;
-
-      case "getInit":
-        // Reply with state
-        console.log("Replying with: " + currentStage);
-        this.send( 
-        JSON.stringify(
-        {
-          type: "initState",
-          stage: currentStage,
-          standbyMsg: currentStandbyMessage
-        }));
-
-      break;
-      case "deleteAllServerData":
-        
-        var directory = __dirname + "/uploads/";
-
-        console.log("Deleting All Server Data from: " + directory);
-
-        fs.readdir(directory, (err, files) => {
-        if (err) {
-          console.log(err);
-        }
-
-        for (var file of files) {
-          fs.unlink(path.join(directory, file), err => {
-            if (err) {
-              console.log(err);
             }
-          });
+
+            // --- sinon c'est du JSON texte classique ---
+            data = data.toString("utf8"); // ← convertir **après** avoir vérifié image
         }
-      });
 
-      break;
+        // 2️⃣ Parser le JSON texte
+        const msg = JSON.parse(data);
+
+        switch (msg.type) {
+            case "getInit":
+                console.log("Client requested initial state");
+                ws.send(JSON.stringify({
+                  type: "initState",
+                  stage: currentStage,
+                  standbyMsg: currentStandbyMessage
+                }));
+                break;
+
+            case "broadcast":
+                console.log("Broadcasting stage:", msg.stage, "standbyMsg:", msg.standbyMsg);
+                currentStage = msg.stage;
+                currentStandbyMessage = msg.standbyMsg;
+                broadcast({
+                    type: "changeState",
+                    stage: currentStage,
+                    standbyMsg: currentStandbyMessage
+                }, ws);
+                break;
+
+            case "deleteAllServerData":
+                console.log("Deleting all server data...");
+                fs.readdir(uploadDir, (err, files) => {
+                    if (err) return console.log(err);
+                    for (const f of files) {
+                      try{ fs.unlinkSync(path.join(uploadDir, f)); } 
+                      catch(e) { console.error("Failed to delete file:", f, e); }
+                    }
+                });
+                break;
+
+            // --- Nouvelle gestion Mail via WS ---
+            case "mail":
+                if (msg.mail) {
+                  console.log("Receiving e-mail via WS:", msg.mail);
+                  const mailFile = path.join(uploadDir, "mails.txt");
+                  fs.appendFile(mailFile, msg.mail + "\r\n", (err) => {
+                    if (err) console.log("Error saving e-mail via WS:", err);
+                    else console.log("E-mail saved via WS:", msg.mail);
+
+                    // Ack côté client
+                    ws.send(JSON.stringify({ type: "mailAck", status: "ok" }));
+                  });
+                } else {
+                  console.log("Invalid mail received via WS");
+                }
+                break;
+        }
+
+    } catch (err) {
+        console.error("Error processing message:", err);
     }
-
-
-
-  });
 });
+});
+
+function broadcast(msg, exclude) {
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN && client !== exclude) {
+            client.send(JSON.stringify(msg));
+        }
+    });
+}
