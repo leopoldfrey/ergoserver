@@ -24,6 +24,6 @@
   "dependencies": {
     "express": "^5.2.1",
     "serve-index": "^1.9.2",
-    "ws": "^8.19.0"
+    "ws": "^8.20.1"
   }
 }
